@@ -1,0 +1,99 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload File</title>
+</head>
+<body>
+    <h2>Upload a File</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="fileInput" name="file" required>
+        <button type="submit">Upload</button>
+    </form>
+    <p id="responseMessage"></p>
+
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", function(event) {
+            event.preventDefault();  // Prevent page reload
+            
+            let formData = new FormData();
+            let fileInput = document.getElementById("fileInput").files[0];
+
+            if (!fileInput) {
+                alert("Please select a file first!");
+                return;
+            }
+
+            formData.append("file", fileInput);
+
+            fetch("http://127.0.0.1:5000/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("responseMessage").innerText = data.message;
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                document.getElementById("responseMessage").innerText = "Upload failed!";
+            });
+        });
+    </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload File</title>
+</head>
+<body>
+    <h2>Upload a File</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="fileInput" name="file" required>
+        <button type="submit">Upload</button>
+    </form>
+    <p id="responseMessage"></p>
+    <div id="parsedContent"></div>
+
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", function(event) {
+            event.preventDefault();  // Prevent page reload
+            
+            let formData = new FormData();
+            let fileInput = document.getElementById("fileInput").files[0];
+
+            if (!fileInput) {
+                alert("Please select a file first!");
+                return;
+            }
+
+            formData.append("file", fileInput);
+
+            fetch("http://127.0.0.1:5000/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === "Upload successful!") {
+                    document.getElementById("responseMessage").innerText = data.message;
+                    document.getElementById("parsedContent").innerText = data.content;  // Show extracted text
+                } else {
+                    document.getElementById("responseMessage").innerText = "Error: " + data.message;
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                document.getElementById("responseMessage").innerText = "Upload failed!";
+            });
+        });
+    </script>
+</body>
+</html>
+

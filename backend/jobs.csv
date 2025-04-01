@@ -1,6 +1,7 @@
-Job Role,Category
-Data Analyst,Data Science
-Web Developer,Web Development
-AI Engineer,AI
-Machine Learning Engineer,Data Science
-Java Developer,Web Development
+Job Role,Category,Description
+Data Analyst,Data Science,Analyze data and create reports.
+Web Developer,Web Development,Develop and design websites.
+AI Engineer,AI,Build AI models and neural networks.
+Machine Learning Engineer,Data Science,Work on ML models.
+Java Developer,Web Development,Develop Java applications.
+Restaurant Manager,Hotel Management,Manages the Restaurant operations.

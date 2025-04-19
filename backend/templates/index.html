@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -115,3 +115,170 @@
     </script>
 </body>
 </html>
+</html> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Resume Parser</title>
+    <script>
+
+        window.onload = function () {
+            document.getElementById("responseMessage").innerText = "";
+            document.getElementById("parsedContentSection").style.display = "none";
+            document.getElementById("jobSection").style.display = "none";
+            document.getElementById("skillGapSection").style.display = "none";
+            document.getElementById("fileInputResume").value = "";
+            document.getElementById("fileInputJD").value = "";
+
+            const jdFile = document.getElementById("fileInputJD").files[0];
+            if (!jdFile) {
+                document.getElementById("jobRoleSelect").style.display = "block";
+            } else {
+                document.getElementById("jobRoleSelect").style.display = "none";
+            }
+        };
+    
+    </script>
+</head>
+<body>
+    <h2>Upload Resume and Job Description</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label>Resume: *</label>
+        <input type="file" id="fileInputResume" name="resume" required><br><br>
+
+        <label>Job Description (Optional):</label>
+        <input type="file" id="fileInputJD" name="jd"><br><br>
+
+        <div id="jobRoleSelect">
+            <label>Select Job Role (if no JD uploaded):</label>
+            <select name="role" id="roleDropdown">
+                <option value="">-- Select Role --</option>
+                {% for role in roles %}
+                    <option value="{{ role }}">{{ role }}</option>
+                {% endfor %}
+            </select>
+        </div><br>
+
+        <button type="submit">Upload</button>
+    </form>
+
+    <p id="responseMessage"></p>
+
+    <div id="parsedContentSection" style="display: none;">
+        <h3>Parsed Resume Text</h3>
+        <p id="parsedContent"></p>
+
+        <h3>Parsed Job Description Text</h3>
+        <p id="parsedJD"></p>
+
+        <h3>Extracted Resume Skills</h3>
+        <p id="resumeSkills"></p>
+
+        <h3>Extracted JD Skills</h3>
+        <p id="jdSkills"></p>
+    </div>
+
+    <div id="jobSection" style="display: none;">
+        <h3>Recommended Jobs</h3>
+        <ul id="jobRecommendations"></ul>
+    </div>
+
+    <div id="skillGapSection" style="display: none;">
+        <h3>Skill Gap Analysis</h3>
+        <p id="skillGap"></p>
+    </div>
+
+    <script>
+        document.getElementById("fileInputJD").addEventListener("change", function () {
+            const file = this.files[0];
+            const jobRoleSelect = document.getElementById("jobRoleSelect");
+            if (file) {
+                jobRoleSelect.style.display = "none";
+                document.getElementById("roleDropdown").value = "";
+            } else {
+                jobRoleSelect.style.display = "block";
+            }
+        });
+
+        document.getElementById("uploadForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            let formData = new FormData();
+            let resumeFile = document.getElementById("fileInputResume").files[0];
+            let jdFile = document.getElementById("fileInputJD").files[0];
+            let selectedRole = document.getElementById("roleDropdown").value;
+
+            if (!resumeFile) {
+                alert("Please upload a resume!");
+                return;
+            }
+
+            formData.append("resume", resumeFile);
+            if (jdFile) {
+                formData.append("jd", jdFile);
+            } else if (selectedRole !== "") {
+                formData.append("role", selectedRole);
+            }
+
+            fetch("/upload", {
+                method: "POST",
+                body: formData,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("responseMessage").innerText = data.message;
+
+                    if (data.message === "Upload successful!") {
+                        document.getElementById("parsedContentSection").style.display = "block";
+                        document.getElementById("parsedContent").innerText = data.resume_content || "No text extracted.";
+                        document.getElementById("parsedJD").innerText = data.jd_content || "No text extracted.";
+                        document.getElementById("resumeSkills").innerText = data.resume_skills ? data.resume_skills.join(", ") : "No skills extracted.";
+                        document.getElementById("jdSkills").innerText = data.jd_skills ? data.jd_skills.join(", ") : "No skills extracted.";
+
+                        if (data.recommended_jobs.length > 0) {
+                            document.getElementById("jobSection").style.display = "block";
+                            const jobList = document.getElementById("jobRecommendations");
+                            jobList.innerHTML = "";
+                            data.recommended_jobs.forEach(job => {
+                                const li = document.createElement("li");
+                                li.textContent = job;
+                                jobList.appendChild(li);
+                            });
+                        }
+
+                        if (data.missing_skills.length > 0) {
+                            document.getElementById("skillGapSection").style.display = "block";
+                            document.getElementById("skillGap").innerText = data.missing_skills.join(", ");
+                        } else {
+                            document.getElementById("skillGapSection").style.display = "none";
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    document.getElementById("responseMessage").innerText = "Upload failed!";
+                });
+        });
+    </script>
+</body>
+</html>
+

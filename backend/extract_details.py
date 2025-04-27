@@ -2,7 +2,7 @@ from parser import parse_resume
 import nltk
 import re
 
-# nltk.download('punkt_tab')
+nltk.download('punkt_tab')
 from nltk.tokenize import sent_tokenize
 
 # Soft and Hard Skills
@@ -13,12 +13,12 @@ SOFT_SKILLS = [
     'Data analysis', 'predictive modeling', 'statistical reasoning', 'computational modeling', 'project collaboration' 
 ]
 
+
 HARD_SKILLS = [
-    "python", "java", "sql", "excel", "machine learning", "data analysis",
-    "data visualization", "nlp", "power bi", "tableau", "deep learning",
-    "pandas", "numpy", "matplotlib", "keras", "tensorflow", "spark",
-    "statistics", "regression", "classification", 
-    "html", "css", "javascript", "linux", "docker", "git"
+    "python", "java", "sql", "excel", "power bi",
+    "pandas", "numpy", "keras", "tensorflow", "c", "c++",
+    "html", "css", "git", "github", "dashboard creation", 
+    "opencv", "pivot table", "scikit learn", "django"
 ]
 
 # Cleaning utility
@@ -50,6 +50,7 @@ def extract_all_skills(text):
     }
 
 # Other detail extractors
+
 def extract_name(text):
     for line in text.split('\n'):
         if line.strip() and len(line.split()) <= 5 and all(word[0].isupper() for word in line.split() if word):
@@ -74,7 +75,6 @@ def extract_location(text):
 def extract_section(text, keywords):
     lines = text.split('\n')
     return [line.strip() for line in lines if any(keyword.lower() in line.lower() for keyword in keywords)]
-
 
 def extract_experience(text):
     experience_keywords = ['experience', 'internship', 'worked', 'company', 'organization']
@@ -101,9 +101,9 @@ def extract_experience(text):
         # End capturing if a stop keyword is found
         if any(stop_kw in line_clean.lower() for stop_kw in stop_keywords):
             if current_exp_title:
-                experience_entry = f"🔹 {current_exp_title}"
+                experience_entry = f" {current_exp_title}"
                 for bullet in current_exp_bullets:
-                    experience_entry += f"\n   • {bullet}"
+                    experience_entry += f"\n    {bullet}"
                 experiences.append(experience_entry)
                 current_exp_title = ""
                 current_exp_bullets = []
@@ -130,13 +130,22 @@ def extract_experience(text):
                         current_exp_bullets.append(line_clean.strip())
 
     # Add final experience block
+    # if current_exp_title:
+    #     experience_entry = f"🔹 {current_exp_title}"
+    #     for bullet in current_exp_bullets:
+    #         experience_entry += f"\n   • {bullet}"
+    #     experiences.append(experience_entry)
+
+    # return experiences
+
     if current_exp_title:
-        experience_entry = f"🔹 {current_exp_title}"
+        experience_entry = f" {current_exp_title}"
         for bullet in current_exp_bullets:
-            experience_entry += f"\n   • {bullet}"
+            experience_entry += f"\n    {bullet}"
         experiences.append(experience_entry)
 
     return experiences
+
 
 
 def extract_education(text):
@@ -159,47 +168,72 @@ def extract_education(text):
         if capture and line.strip():
             education_lines.append(line.strip())
 
-    edu_text = " ".join(education_lines)
+    # Combine continuation lines together
+    combined_lines = []
+    buffer = ""
+    for line in education_lines:
+        if re.search(r'(University|Institute|College|School|Academy|Faculty|Polytechnic)', line, re.IGNORECASE):
+            if buffer:
+                combined_lines.append(buffer)
+                buffer = ""
+            buffer = line
+        else:
+            buffer += " " + line
+    if buffer:
+        combined_lines.append(buffer)
 
-    # Normalize formatting
+    edu_text = " ".join(combined_lines)
+
+    # Clean
     edu_text = re.sub(r'\s{2,}', ' ', edu_text)
     edu_text = re.sub(r'\bC\s?G\s?P\s?A\b.*?(?=( |$))', '', edu_text, flags=re.IGNORECASE)
     edu_text = re.sub(r'Percentage\s*:\s*\d+(\.\d+)?%', '', edu_text, flags=re.IGNORECASE)
-    edu_text = re.sub(r'(April|June|December|March)[^0-9]*\d{4}.*?(?=\s|$)', '', edu_text, flags=re.IGNORECASE)
+    edu_text = re.sub(r'(April|June|December|March|Jan|Feb|Mar|Jul|Aug|Sep|Oct|Nov)[^0-9]*\d{4}.*?(?=\s|$)', '', edu_text, flags=re.IGNORECASE)
+    edu_text = re.sub(r'\d{4}', '', edu_text)  # Remove years like 2020, 2021
 
-    # Extract institution names using common patterns
-    institution_pattern = r'(Guru Tegh Bahadur Institute of Technology.*?|Pusa Institute of Technology.*?|National Institute of Open School.*?|Government Co-ed Senior Secondary School.*?Dwarka New Delhi)'
+    # Improved regex to match full names
+    institution_pattern = r'''
+        \b
+        (?:[A-Z][a-z.&,-]+(?:\s[A-Z][a-z.&,-]+)*\s)?
+        (University|College|School|Institute|Academy|Faculty|Polytechnic)
+        (?:\s(?:of|for|and|at)\s[A-Z][a-z.&,-]+(?:\s[A-Z][a-z.&,-]+)*)?
+        |
+        Class\s*(?:10|12|X|XII)(?:th)?|
+        Secondary\s+(?:School|Education)|
+        Senior\s+Secondary|
+        High\s+School|
+        CBSE|ICSE
+        \b
+    '''
 
-    institutions = re.findall(institution_pattern, edu_text, re.IGNORECASE)
-    return [inst.strip() for inst in institutions]
+    institutions = re.findall(institution_pattern, edu_text, re.VERBOSE | re.IGNORECASE)
 
+    # Clean up and reformat output
+    final_output = []
+    for inst in combined_lines:
+        if any(keyword.lower() in inst.lower() for keyword in ['school', 'college', 'university', 'institute', 'academy', 'faculty', 'polytechnic', 'cbse', 'icse']):
+            final_output.append(" " + inst.strip())
+
+    return list(set(final_output))
 
 
 def format_project_section(text):
     lines = text.split('\n')
     capture = False
-    projects = []
-    current_project_title = None
-    project_content = ""
+    output_lines = []
 
-    # Keywords
-    start_keywords = ["projects"]
-    stop_keywords = ["experience", "certification", "education", "skills", "contact", "soft"]
-    title_keywords = ["project", "analysis", "dashboard", "developed", "created", "built", "designed", "implemented"]
-
-    # Regex patterns
-    bullet_pattern = re.compile(r'^[•\-–—\s]+')
-    date_pattern = re.compile(
-        r'(\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s*\d{2,4})|'
-        r'(\b\d{1,2}[/-]\d{2,4})|'
-        r'(\b\d{4}[/-]?\d{0,2})|'
-        r'(\b20\d{2}\b)',
-        flags=re.IGNORECASE
-    )
+    # Broad matching keywords
+    start_keywords = [
+        "projects", "project work", "academic projects",
+        "personal projects", "major projects", "minor projects"
+    ]
+    stop_keywords = [
+        "experience", "certification", "education", "skills",
+        "contact", "languages", "summary", "profile", "about"
+    ]
 
     for line in lines:
-        line_clean = line.strip()
-        line_lower = line_clean.lower()
+        line_lower = line.strip().lower()
 
         if any(start_kw in line_lower for start_kw in start_keywords):
             capture = True
@@ -209,40 +243,16 @@ def format_project_section(text):
             break
 
         if capture:
-            # Clean line
-            line_clean = bullet_pattern.sub('', line_clean)
-            line_clean = date_pattern.sub('', line_clean)
-            line_clean = re.sub(r'\([^)]*\)', '', line_clean)  # remove text inside parentheses
-            line_clean = re.sub(r'\s{2,}', ' ', line_clean).strip()
-
-            # Heading logic: if line contains title keywords and <= 10 words, it's likely a title
-            if any(word in line_lower for word in title_keywords) and 3 <= len(line_clean.split()) <= 12:
-                if current_project_title:  # if already exists, save previous
-                    projects.append((current_project_title, project_content.strip()))
-                current_project_title = f"• {line_clean}"
-                project_content = ""
-            elif current_project_title:
-                project_content += " " + line_clean
-
-    # Append last project
-    if current_project_title:
-        projects.append((current_project_title, project_content.strip()))
-
-    # Format output
-    output_lines = []
-    for title, content in projects:
-        output_lines.append(title)
-        sentences = sent_tokenize(content)
-        for sentence in sentences:
-            clean_sentence = sentence.strip()
-            if clean_sentence:
-                output_lines.append(f"   - {clean_sentence}")
+            output_lines.append(line.strip())
 
     return output_lines
 
 
+
+
+
 def extract_certifications(text):
-    cert_keywords = ['certification', 'certifications', 'certificate', 'completed', 'course', 'linkedin learning', 'introduction']
+    cert_keywords = ['certification', 'certifications', 'certificate', 'course', 'linkedin learning', 'introduction', 'analyst', 'TCS', 'scaler', '[CO]', '[EC-COUNCIL]', '[UDEMY]', '[GEEKS FOR GEEKS]']
 
     # Get all lines from the certification section
     lines = extract_section(text, cert_keywords)
@@ -267,7 +277,7 @@ def extract_details(text):
         "phone": extract_phone(text),
         "location": extract_location(text),
         "education": extract_education(text),
-        "experience": extract_experience(text),
+        "experience": extract_experience(text), 
         "projects": format_project_section(text),
         "certifications": extract_certifications(text),
         "hard_skills": skills["hard_skills"],
@@ -288,7 +298,7 @@ def print_structured_details(details):
 
     print("📚 Education:")
     for edu in education:
-        print("   •", edu)
+        print("   ", edu)
 
     
     print("\n💼 Experience:")
@@ -305,14 +315,8 @@ def print_structured_details(details):
 
     print("\n🛠️ Hard Skills:")
     for hs in details.get("hard_skills", []):
-        print("   •", hs)
+        print("   ", hs)
 
     print("\n🤝 Soft Skills:")
     for ss in details.get("soft_skills", []):
-        print("   •", ss)
-
-# 🧪 Test Run
-# if __name__ == "__main__":
-#     text = parse_resume('/home/archie/Documents/Abhishek_CV-2.pdf')
-#     details = extract_details(text)
-#     print_structured_details(details)
+        print("   ", ss)

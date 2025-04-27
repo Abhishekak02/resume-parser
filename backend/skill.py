@@ -1,5 +1,5 @@
 import re
-import requests
+import request
 
 API_KEY = "YOURAPIKEY"  
 MODEL = "dbmdz/bert-large-cased-finetuned-conll03-english" 

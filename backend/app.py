@@ -16,7 +16,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # Load predefined JD CSV (columns: role, skills)
-JD_CSV_PATH = "/home/archie/programs/resume_parser/backend/tech_job_descriptions.csv"
+JD_CSV_PATH = "/home/inferno/programs/resume_parser/backend/tech_job_descriptions.csv"
 jd_df = pd.read_csv(JD_CSV_PATH)
 jd_df.columns = jd_df.columns.str.strip()  # Ensure column names have no leading/trailing spaces
 
@@ -402,6 +402,11 @@ static_skill_resources = {
     "https://www.oracle.com/database/technologies/backup-recovery.html",
     "https://www.youtube.com/playlist?list=PLsyeobzWxl7r3ZlbGJ8aXCp1p4YdC40jw",
     "https://www.udemy.com/course/database-backup-recovery/"
+    ],
+    "OpenCV": [
+    "https://docs.opencv.org/4.x/",
+    "https://www.youtube.com/playlist?list=PLMoSUbG1Q_r_sc0x7ndCsqdIkL7dwrmNF",
+    "https://www.udemy.com/course/opencv-tutorial/"
     ]
     
     
@@ -463,11 +468,12 @@ def upload():
         else:
             return jsonify({"message": "Either JD file or job role selection is required!"}), 400
 
+
         missing_skills = find_skill_gap(jd_skills, resume_skills)
         recommended_jobs = recommend_jobs(resume_text)
         learning_resources = get_static_learning_resources(missing_skills)
 
-        print("\n=== Static Learning Resources ===")
+        print("\n=== Learning Resources ===")
         for skill, links in learning_resources.items():
             print(f"\nSkill: {skill}")
             for link in links:
@@ -492,3 +498,7 @@ def upload():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+
+

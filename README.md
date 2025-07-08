@@ -1,4 +1,4 @@
-# ⚡ AI Resume Analyzer
+# ⚡ CVTrackr
 
 An intelligent, AI-powered resume parser that extracts essential details, recommends relevant jobs, and analyzes skill gaps to provide targeted learning resources.
 

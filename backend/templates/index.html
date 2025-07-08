@@ -38,7 +38,6 @@
         <div class="mt-4" id="responseMessage" class="text-success"></div>
 
 
-        <!-- added manullay 3 -->
         <div id="resumeDetailsSection" style="display:none;">
             <div class="card mt-3">
                 <div class="card-header">Extracted Resume Details</div>
@@ -47,10 +46,6 @@
         </div>
 
         <div id="parsedContentSection" style="display:none;">
-            <!-- <div class="card mt-4">
-                <div class="card-header">Parsed Resume Text</div>
-                <div class="card-body"><p id="parsedContent"></p></div>
-            </div> -->
 
             <div class="card mt-3">
                 <div class="card-header">Parsed Job Description Text</div>
@@ -83,7 +78,6 @@
         </div>
     </div>
 
-        <!-- added manually 1 -->
         <div id="learningResourcesSection" style="display: none;">
             <div class="card mt-3">
                 <div class="card-header">Learning Resources</div>
@@ -92,7 +86,6 @@
         </div>
 
 
-        <!-- added manullay 2 -->
         <div id="resumeDetailsSection" style="display:none;">
             <div class="card mt-3">
                 <div class="card-header">Extracted Resume Details</div>
@@ -130,7 +123,6 @@
                     document.getElementById("responseMessage").innerText = data.message;
                     if (data.message === "Upload successful!") {
                         document.getElementById("parsedContentSection").style.display = "block";
-                        // document.getElementById("parsedContent").innerText = data.resume_content || "No text extracted.";
                         document.getElementById("parsedJD").innerText = data.jd_content || "No text extracted.";
                         document.getElementById("resumeSkills").innerText = data.resume_skills ? data.resume_skills.join(", ") : "None found.";
                         document.getElementById("jdSkills").innerText = data.jd_skills ? data.jd_skills.join(", ") : "None found.";
@@ -152,7 +144,6 @@
                             document.getElementById("skillGap").innerText = data.missing_skills.join(", ");
                         }
                                 
-                        // manually added 1
                         if (data.learning_resources && Object.keys(data.learning_resources).length > 0) {
                             document.getElementById("learningResourcesSection").style.display = "block";
                             const learningList = document.getElementById("learningResources");
@@ -171,7 +162,6 @@
                         }
                     }
 
-                    // manually added 2
                     if (data.resume_details) {
                         document.getElementById("resumeDetailsSection").style.display = "block";
                         const detailsDiv = document.getElementById("resumeDetailsContent");
@@ -211,3 +201,4 @@
     </script>
 </body>
 </html>
+

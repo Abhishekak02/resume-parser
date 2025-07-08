@@ -24,7 +24,6 @@ def find_skill_gap(jd_skills, resume_skills):
     return list(set(jd_skills) - set(resume_skills))
 
 # ---------------------------
-# Static Resources Mapping
 # ---------------------------
 static_skill_resources = {
     "Power BI": [
